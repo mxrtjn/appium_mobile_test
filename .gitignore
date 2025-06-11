@@ -32,3 +32,10 @@ google-services.json
 
 # Android Profiling
 *.hprof
+node_modules
+
+# apk files
+app/android/*
+app/ios/*
+
+.DS_Store
