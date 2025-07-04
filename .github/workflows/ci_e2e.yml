@@ -1,0 +1,32 @@
+name: CI - E2E Mobile Tests
+
+on:
+  push:
+env:
+  ANDROID_BUILD_TOOLS_VERSION: 34.0.0
+jobs:
+  appium-run:
+    runs-on: "ubuntu-latest"
+    steps:
+      - name: "Checkout code"
+        uses: "actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683"
+      - name: "Setup Node.js"
+        uses: "actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af"
+        with:
+          node-version: 18
+      - name: "Install dependencies"
+        run: npm install
+      - name: Add avdmanager and sdkmanager to system PATH
+        run: |
+          echo "$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/emulator:$ANDROID_HOME/tools:$ANDROID_HOME/platform-tools:$ANDROID_HOME/build-tools/${{ env.ANDROID_BUILD_TOOLS_VERSION }}" >> $GITHUB_PATH
+      - name: Install Sdk
+        run: |
+          yes Y | sdkmanager --licenses
+          sdkmanager --install ${ANDROID_SDK_PACKAGES}
+      - name: Start Appium Server
+        run: |
+          npm install -g appium
+          appium &
+          sleep 10
+      - name: "Run tests"
+        run: npx wdio
