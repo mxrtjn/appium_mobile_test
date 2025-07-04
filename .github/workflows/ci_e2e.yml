@@ -31,6 +31,9 @@ jobs:
       - name: print ANDROID_HOME
         run: |
           echo "$ANDROID_HOME"
+      - name: print sdkmanager in LOCAL
+        run: |
+          ls $ANDROID_HOME/build-tools/
       - name: print sdkmanager list
         run: |
           sdkmanager --list
