@@ -31,6 +31,9 @@ jobs:
       - name: print ANDROID_HOME
         run: |
           echo "$ANDROID_HOME"
+      - name: print sdkmanager list
+        run: |
+          sdkmanager --list
       - name: Install Sdk
         run: |
           yes Y | sdkmanager --licenses
