@@ -3,8 +3,8 @@ name: CI - E2E Mobile Tests
 on:
   push:
 env:
-  EMULATOR_NAME: Pixel
-  EMULATOR_DEVICE: Pixel 4
+  EMULATOR_NAME: pixel_4
+  EMULATOR_DEVICE: pixel_4
   API_LEVEL: 36
   EMULATOR_VERSION: 12
   ANDROID_ARCH: x86_64
@@ -48,15 +48,11 @@ jobs:
 
       - name: Build emulator
         run: |
-          echo "no" | avdmanager --verbose create avd --force -n "test" --device "pixel_4" --abi "arm64-v8a" -k "system-images;android-36;google_apis_playstore_ps16k;arm64-v8a"
+          echo "no" | avdmanager --verbose create avd --force -n "pixel_4" --device "pixel_4" --abi "arm64-v8a" -k "system-images;android-36;google_apis_playstore_ps16k;arm64-v8a"
       - name: Launch emulator
         run: |
-          chmod +x ./sscript/start_emu.sh
-          ./sscript/start_emu.sh
-      - name: Check emulator booting status
-        run: |
-          chmod a+x ./sscript/check_emu.sh
-          ./sscript/check_emu.sh
+          chmod +x ./app/android/start_emu_headless.sh
+          ./app/android/start_emu_headless.sh
       - name: "Install dependencies"
         run: npm install
       - name: Start Appium Server
