@@ -41,7 +41,7 @@ jobs:
           sdkmanager --install ${ANDROID_SDK_PACKAGES}
       - name: Build emulator
         run: |
-          echo "no" | avdmanager --verbose create avd --force -n "test" --device "Pixel 4" --abi "arm64-v8a" -k "system-images;android-36;google_apis_playstore_ps16k;arm64-v8a"
+          echo "no" | avdmanager --verbose create avd --force -n "test" --device "Pixel_4" --abi "arm64-v8a" -k "system-images;android-36;google_apis_playstore_ps16k;arm64-v8a"
       - name: Launch emulator
         run: |
           chmod +x ./sscript/start_emu.sh
