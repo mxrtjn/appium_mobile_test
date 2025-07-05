@@ -10,7 +10,7 @@ env:
   ANDROID_ARCH: x86_64
   ANDROID_TARGET: google_apis
   ANDROID_BUILD_TOOLS_VERSION: 34.0.0
-  ANDROID_SDK_PACKAGES: system-images;android-32;google_apis;x86_64 platforms;android-32 build-tools;34.0.0 platform-tools emulator
+  ANDROID_SDK_PACKAGES: system-images;android-36;google_apis_playstore_ps16k;arm64-v8a
   EMULATOR_TIMEOUT: 350
   BOOT_TIMEOUT: 700
 jobs:
@@ -41,7 +41,7 @@ jobs:
           sdkmanager --install ${ANDROID_SDK_PACKAGES}
       - name: Build emulator
         run: |
-          echo "no" | avdmanager --verbose create avd --force -n "test" --device "Pixel 4" --abi "arm64-v8a" -k "system-images;android-36;google_apis_playstore_ps16k;arm64-v8a"
+          echo "no" | avdmanager --verbose create avd --force -n "test" --device "Pixel 4" --abi "arm64-v8a" -k "system-images;android-36;google_apis_playstore_ps16k;arm64-v8a "
       - name: Launch emulator
         run: |
           chmod +x ./sscript/start_emu.sh
