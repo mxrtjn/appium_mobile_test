@@ -34,7 +34,7 @@ jobs:
           npm install -g @appium/doctor
 
       - name: "Verify Appium setup"
-        run: appium doctor --android
+        run: appium-doctor --android
 
       - name: "Enable KVM group perms"
         run: |
