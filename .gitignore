@@ -35,7 +35,7 @@ google-services.json
 node_modules
 
 # apk files
-app/android/*
+#app/android/*
 app/ios/*
 
 .DS_Store
