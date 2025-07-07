@@ -33,11 +33,6 @@ jobs:
           npm install -g appium
           npm install -g @appium/doctor
 
-      - name: "Install Appium drivers"
-        run: |
-          appium driver install uiautomator2
-          appium driver install xcuitest
-
       - name: "Verify Appium setup"
         run: appium doctor --android
 
