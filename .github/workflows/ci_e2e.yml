@@ -1,37 +1,91 @@
-name: CI - E2E Mobile Tests
+name: Appium Mobile Tests
 
 on:
   push:
-env:
-  ANDROID_ARCH: x86_64
-  ANDROID_TARGET: google_apis_playstore
-  API_LEVEL: 33
-  ANDROID_BUILD_TOOLS_VERSION: 33.0.2
-  ANDROID_SDK_PACKAGES: system-images;android-33;google_apis_playstore;x86_64 platforms;android-33 build-tools;33.0.2 platform-tools emulator
-  EMULATOR_TIMEOUT: 350
-  EMULATOR_NAME: nexus
+  workflow_dispatch: # Permite ejecutar manualmente
 
 jobs:
-  playwright-emulator:
-    timeout-minutes: 20
-    runs-on: macos-13
+  appium-android:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        api-level: [30]
+        target: [default, google_apis]
+
     steps:
-      - uses: actions/checkout@v3
+      - name: "Checkout code"
+        uses: actions/checkout@v4
 
-      - name: Add avdmanager and sdkmanager to system PATH
-        run: |
-          echo "$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/emulator:$ANDROID_HOME/tools:$ANDROID_HOME/platform-tools:$ANDROID_HOME/build-tools/${{ env.ANDROID_BUILD_TOOLS_VERSION }}" >> $GITHUB_PATH
+      - name: "Setup Node.js"
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
 
-      - name: Install Sdk
-        run: |
-          yes Y | sdkmanager --licenses
-          sdkmanager --install ${ANDROID_SDK_PACKAGES}
+      - name: "Setup Java 11"
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "11"
 
-      - name: Build emulator
+      - name: "Install dependencies"
         run: |
-          echo "no" | avdmanager --verbose create avd --force -n $EMULATOR_NAME --abi "${ANDROID_TARGET}/${ANDROID_ARCH}" -k "system-images;android-${API_LEVEL};${ANDROID_TARGET};${ANDROID_ARCH}"
+          npm install
+          npm install -g appium
+          npm install -g @appium/doctor
 
-      - name: Launch emulator
+      - name: "Install Appium drivers"
         run: |
-          chmod +x ./app/android/start_emu_headless.sh
-          EMULATOR_TIMEOUT=$EMULATOR_TIMEOUT EMULATOR_NAME=$EMULATOR_NAME ./app/android/start_emu_headless.sh
+          appium driver install uiautomator2
+          appium driver install xcuitest
+
+      - name: "Verify Appium setup"
+        run: appium doctor --android
+
+      - name: "Enable KVM group perms"
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: "Setup Android SDK"
+        uses: android-actions/setup-android@v2
+
+      - name: "AVD cache"
+        uses: actions/cache@v4
+        id: avd-cache
+        with:
+          path: |
+            ~/.android/avd/*
+            ~/.android/adb*
+          key: avd-${{ matrix.api-level }}
+
+      - name: "Create AVD and generate snapshot for caching"
+        if: steps.avd-cache.outputs.cache-hit != 'true'
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: ${{ matrix.api-level }}
+          target: ${{ matrix.target }}
+          arch: x86_64
+          profile: Nexus 6
+          force-avd-creation: false
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          disable-animations: false
+          script: echo "Generated AVD snapshot for caching."
+
+      - name: "Start Appium server"
+        run: |
+          appium server --port 4723 --relaxed-security &
+          sleep 10
+
+      - name: "Run Appium tests"
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: ${{ matrix.api-level }}
+          target: ${{ matrix.target }}
+          arch: x86_64
+          profile: Nexus 6
+          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          disable-animations: true
+          script: |
+            adb devices
+            npx wdio
